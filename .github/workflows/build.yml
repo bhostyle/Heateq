@@ -1,0 +1,26 @@
+name: Build Heat EQ VST3
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Configure macOS
+        if: runner.os == 'macOS'
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"
+      - name: Configure Windows
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build -A x64
+      - run: cmake --build build --config Release --target HeatEQ_VST3 --parallel 2
+      - name: Archive plugin bundle
+        run: tar -czf Heat-EQ.tar.gz -C build/HeatEQ_artefacts/Release/VST3 "Heat EQ.vst3"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Heat-EQ-${{ runner.os }}
+          path: Heat-EQ.tar.gz
+          if-no-files-found: error
