@@ -17,6 +17,12 @@ jobs:
         if: runner.os == 'Windows'
         run: cmake -S . -B build -A x64
       - run: cmake --build build --config Release --target HeatEQ_VST3 --parallel 2
+            - name: Sign and verify finished macOS bundle
+        if: runner.os == 'macOS'
+        run: |
+          plugin="build/HeatEQ_artefacts/Release/VST3/Heat EQ.vst3"
+          codesign --force --sign - "$plugin"
+          codesign --verify --strict --verbose=2 "$plugin"
       - name: Archive plugin bundle
         run: tar -czf Heat-EQ.tar.gz -C build/HeatEQ_artefacts/Release/VST3 "Heat EQ.vst3"
       - uses: actions/upload-artifact@v6
